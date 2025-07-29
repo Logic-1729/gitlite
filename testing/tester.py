@@ -90,7 +90,7 @@ faulty TEST.in files."""
 TIMEOUT = 10
 
 # C++ executable configuration
-CPP_EXECUTABLE = "gito"
+CPP_EXECUTABLE = "gitlite"
 
 # 默认使用C++版本
 USE_CPP = True
@@ -141,7 +141,10 @@ TEST_SCORES = {
     "6-status-05": 5,
     "6-remote-01": 5,
     "6-remote-02": 5,
-    "6-remote-03": 5
+    "6-remote-03": 5,
+    "6-diff-01": 5,
+    "6-diff-02": 5,
+    "6-diff-03": 5
 }
 
 # Subtask groupings
@@ -151,7 +154,7 @@ SUBTASKS = {
     "Subtask3(status,checkout)": ["3-status", "3-status-01", "3-status-02", "3-status-03", "3-status-04", "3-status-05", "3-status-06", "3-status-07", "3-checkout-03", "3-checkout-04", "3-checkout-05"],
     "Subtask4(branch,rm-branch,reset)": ["4-branch-01", "4-branch-02", "4-branch-03", "4-rm-branch-01", "4-rm-branch-02", "4-reset-01", "4-reset-02", "4-global-log-02", "4-find-03"],
     "Subtask5(merge)": ["5-merge-01", "5-merge-02", "5-merge-03", "5-merge-04", "5-merge-05", "5-merge-06", "5-merge-07", "5-merge-08"],
-    "Subtask6(bonus)": ["6-status-05", "6-remote-01", "6-remote-02", "6-remote-03"]
+    "Subtask6(bonus)": ["6-status-05", "6-remote-01", "6-remote-02", "6-remote-03", "6-diff-01", "6-diff-02", "6-diff-03"]
 }
 
 DEBUG = False
@@ -436,7 +439,7 @@ def doTest(test):
                             write_file(test, cmnd, expected, out)
                             msg = "incorrect output"
                     if msg != "OK":
-                        # 静默失败，不输出错误详情
+                        print("{}: FAILED ({}) (0pts/{}pts)".format(base, msg, test_score))
                         return False, test_score
                 elif Match(r'=\s*(\S+)\s+(\S+)', line):
                     if not correctFileOutput(Group(1), Group(2), cdir):
@@ -511,9 +514,9 @@ if __name__ == "__main__":
             prog_dir = project_root
             # Try multiple possible locations for the C++ executable
             possible_paths = [
-                join(project_root, 'build', 'gito'),
-                join(project_root, 'gito'),
-                join(project_root, 'bin', 'gito')
+                join(project_root, 'build', 'gitlite'),
+                join(project_root, 'gitlite'),
+                join(project_root, 'bin', 'gitlite')
             ]
             cpp_executable_path = None
             for path in possible_paths:
@@ -524,7 +527,7 @@ if __name__ == "__main__":
             if cpp_executable_path:
                 CPP_EXECUTABLE = cpp_executable_path
             else:
-                print("Could not find gito C++ executable.", file=sys.stderr)
+                print("Could not find gitlite C++ executable.", file=sys.stderr)
                 print("Looked for it at:", file=sys.stderr)
                 for path in possible_paths:
                     print("  {}".format(path), file=sys.stderr)
@@ -602,11 +605,13 @@ if __name__ == "__main__":
 
     print()
     print("Ran {} tests.".format(num_tests))
-    print("Total Score: {}/{} pts".format(earned_score, total_score))
+    print("Total Score: {} pts".format(earned_score))
     
     if errs == fails == 0:
         print("All tests passed!")
     else:
         passed_tests = num_tests - errs - fails
         print("{} tests passed, {} tests failed.".format(passed_tests, errs + fails))
+        if failed_tests:
+            print("Failed tests: {}".format(", ".join(failed_tests)))
         sys.exit(1)
