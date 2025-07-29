@@ -4,6 +4,12 @@
 #include <sys/stat.h>
 #include <cstring>
 
+/** Assorted utilities.
+ *
+ * Give this file a good read as it provides several useful utility functions
+ * to save you some time.
+ */
+
 // SHA1 implementation
 namespace SHA1 {
     void SHA::reset() {
@@ -120,6 +126,9 @@ namespace SHA1 {
     }
 }
 
+/* SHA-1 HASH VALUES. */
+/** Returns the SHA-1 hash of the concatenation of VALS, which may
+ *  be any mixture of byte arrays and Strings. */
 std::string Utils::sha1(const std::string& s1) {
     return SHA1::sha1(s1);
 }
@@ -133,11 +142,17 @@ std::string Utils::sha1(const std::string& s1, const std::string& s2,
     return SHA1::sha1(s1, s2, s3, s4);
 }
 
+/** Returns the SHA-1 hash of the concatenation of the strings in VALS. */
 std::string Utils::sha1(const std::vector<unsigned char>& data) {
     std::string str(data.begin(), data.end());
     return SHA1::sha1(str);
 }
 
+/* FILE DELETION */
+/** Deletes FILE if it exists and is not a directory.  Returns true
+*  if FILE was deleted, and false otherwise.  Refuses to delete FILE
+*  and throws IllegalArgumentException unless the directory designated by
+*  FILE also contains a directory named .gitlet. */
 bool Utils::restrictedDelete(const std::string& filepath) {
     // Extract parent directory
     size_t pos = filepath.find_last_of("/\\");
@@ -154,6 +169,10 @@ bool Utils::restrictedDelete(const std::string& filepath) {
     return false;
 }
 
+ /* READING AND WRITING FILE CONTENTS */
+/** Return the entire contents of FILE as a byte array.  FILE must
+ *  be a normal file.  Throws IllegalArgumentException
+ *  in case of problems. */
 std::vector<unsigned char> Utils::readContents(const std::string& filepath) {
     if (!isFile(filepath)) {
         throw std::invalid_argument("must be a normal file");
@@ -174,11 +193,18 @@ std::vector<unsigned char> Utils::readContents(const std::string& filepath) {
     return contents;
 }
 
+/** Return the entire contents of FILE as a String.  FILE must
+ *  be a normal file.  Throws IllegalArgumentException
+ *  in case of problems. */
 std::string Utils::readContentsAsString(const std::string& filepath) {
     auto contents = readContents(filepath);
     return std::string(contents.begin(), contents.end());
 }
 
+/** Write the result of concatenating the bytes in CONTENTS to FILE,
+ *  creating or overwriting it as needed.  Each object in CONTENTS may be
+ *  either a String or a byte array.  Throws IllegalArgumentException
+ *  in case of problems. */
 void Utils::writeContents(const std::string& filepath, const std::string& content) {
     // Create parent directories if needed
     size_t pos = filepath.find_last_of("/\\");
@@ -211,6 +237,9 @@ void Utils::writeContents(const std::string& filepath, const std::vector<unsigne
     file.write(reinterpret_cast<const char*>(content.data()), content.size());
 }
 
+/** Returns a list of the names of all plain files in the directory DIR, in
+*  order as C++ Strings.  Returns null if DIR does
+*  not denote a directory. */
 std::vector<std::string> Utils::plainFilenamesIn(const std::string& dirPath) {
     std::vector<std::string> files;
     
@@ -231,6 +260,10 @@ std::vector<std::string> Utils::plainFilenamesIn(const std::string& dirPath) {
     return files;
 }
 
+/* OTHER FILE UTILITIES */
+
+/** Return the concatenation of FIRST and SECOND into a File path,
+ *  handling empty strings and path separators appropriately. */
 std::string Utils::join(const std::string& first, const std::string& second) {
     if (first.empty()) return second;
     if (second.empty()) return first;
@@ -245,10 +278,13 @@ std::string Utils::join(const std::string& first, const std::string& second, con
     return join(join(first, second), third);
 }
 
+/** Returns a byte array containing the serialized contents of OBJ. */
 std::vector<unsigned char> Utils::serialize(const std::string& obj) {
     return std::vector<unsigned char>(obj.begin(), obj.end());
 }
 
+/** Print a message composed from MSG and ARGS as for the String.format
+ *  method, followed by a newline. */
 void Utils::message(const std::string& msg) {
     std::cout << msg << std::endl;
 }
@@ -258,11 +294,13 @@ void Utils::exitWithMessage(const std::string& msg) {
     std::exit(0);
 }
 
+/** Returns true if PATH exists as a file or directory. */
 bool Utils::exists(const std::string& path) {
     struct stat buffer;
     return (stat(path.c_str(), &buffer) == 0);
 }
 
+/** Returns true if PATH exists and is a regular file. */
 bool Utils::isFile(const std::string& path) {
     struct stat buffer;
     if (stat(path.c_str(), &buffer) != 0) {
@@ -271,6 +309,7 @@ bool Utils::isFile(const std::string& path) {
     return S_ISREG(buffer.st_mode);
 }
 
+/** Returns true if PATH exists and is a directory. */
 bool Utils::isDirectory(const std::string& path) {
     struct stat buffer;
     if (stat(path.c_str(), &buffer) != 0) {
@@ -279,6 +318,9 @@ bool Utils::isDirectory(const std::string& path) {
     return S_ISDIR(buffer.st_mode);
 }
 
+/** Recursively creates all directories in PATH if they don't exist.
+ *  Returns true if all directories were created or already exist,
+ *  false otherwise. */
 bool Utils::createDirectories(const std::string& path) {
     if (path.empty()) return true;
     if (isDirectory(path)) return true;
