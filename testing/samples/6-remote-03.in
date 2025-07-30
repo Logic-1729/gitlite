@@ -39,9 +39,9 @@ D R2_INIT "${2}"
 
 # Fetch remote master and reset our master to it.
 # Then add another commit and push.
-> add-remote R1 ../Dx/.gitlet
+> add-remote R1 ../Dx/.gitlite
 <<<
-> add-remote R1 ../D1/.gitlet
+> add-remote R1 ../D1/.gitlite
 A remote with that name already exists.
 <<<
 > fetch R1 master
@@ -55,7 +55,7 @@ Remote directory not found.
 > rm-remote glorp
 A remote with that name does not exist.
 <<<
-> add-remote R1 ../D1/.gitlet
+> add-remote R1 ../D1/.gitlite
 <<<
 > fetch R1 glorp
 That remote does not have that branch.

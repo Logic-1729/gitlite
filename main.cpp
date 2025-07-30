@@ -6,7 +6,7 @@
 #include "include/Utils.h"
 
 void checkCWD() {
-    if (!Utils::isDirectory(Repository::getGitletDir())) {
+    if (!Utils::isDirectory(Repository::getGitliteDir())) {
         Utils::exitWithMessage("Not in an initialized Gitlite directory.");
     }
 }

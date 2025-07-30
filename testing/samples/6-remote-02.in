@@ -21,7 +21,7 @@ C D2
 > init
 <<<
 # Fetch remote master and reset our master to it.
-> add-remote R1 ../D1/.gitlet
+> add-remote R1 ../D1/.gitlite
 <<<
 > fetch R1 master
 <<<

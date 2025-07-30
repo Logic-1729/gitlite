@@ -13,12 +13,12 @@
 #include <sstream>
 
 void SomeObj::init() {
-    std::string gitletDir = Repository::getGitletDir();
-    if (Utils::isDirectory(gitletDir)) {
-        Utils::exitWithMessage("A Gitlet version-control system already exists in the current directory.");
+    std::string gitliteDir = Repository::getGitliteDir();
+    if (Utils::isDirectory(gitliteDir)) {
+        Utils::exitWithMessage("A Gitlite version-control system already exists in the current directory.");
     }
-    
-    Utils::createDirectories(gitletDir);
+
+    Utils::createDirectories(gitliteDir);
     Utils::createDirectories(Repository::getObjectsDir());
     Utils::createDirectories(Repository::getCommitsDir());
     Utils::createDirectories(Repository::getBranchDir());

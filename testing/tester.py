@@ -477,7 +477,7 @@ if __name__ == "__main__":
     prog_dir = None
     verbose = False
     src_dir = 'src'
-    output_tolerance = 3
+    output_tolerance = 0
     num_reps = 1
 
     try:

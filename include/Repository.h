@@ -8,9 +8,9 @@ class Repository {
 public:
     // Current working directory
     static std::string getCWD();
-    
-    // The .gitlet directory
-    static std::string getGitletDir();
+
+    // The .gitlite directory
+    static std::string getGitliteDir();
     static std::string getObjectsDir();
     static std::string getCommitsDir();
     static std::string getBranchDir();
@@ -20,7 +20,7 @@ public:
 
 private:
     static std::string CWD;
-    static std::string GITLET_DIR;
+    static std::string GITLITE_DIR;
     static std::string OBJECTS_DIR;
     static std::string COMMITS_DIR;
     static std::string BRANCH_DIR;

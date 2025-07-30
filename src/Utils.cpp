@@ -152,15 +152,15 @@ std::string Utils::sha1(const std::vector<unsigned char>& data) {
 /** Deletes FILE if it exists and is not a directory.  Returns true
 *  if FILE was deleted, and false otherwise.  Refuses to delete FILE
 *  and throws IllegalArgumentException unless the directory designated by
-*  FILE also contains a directory named .gitlet. */
+*  FILE also contains a directory named .gitlite. */
 bool Utils::restrictedDelete(const std::string& filepath) {
     // Extract parent directory
     size_t pos = filepath.find_last_of("/\\");
     std::string parentDir = (pos == std::string::npos) ? "." : filepath.substr(0, pos);
-    std::string gitletDir = parentDir + "/.gitlet";
-    
-    if (!isDirectory(gitletDir)) {
-        throw std::invalid_argument("not .gitlet working directory");
+    std::string gitliteDir = parentDir + "/.gitlite";
+
+    if (!isDirectory(gitliteDir)) {
+        throw std::invalid_argument("not .gitlite working directory");
     }
     
     if (isFile(filepath)) {

@@ -40,7 +40,7 @@ D R2_INIT "${2}"
 
 # Fetch remote master and reset our master to it.
 # Then add another commit and push.
-> add-remote R1 ../D1/.gitlet
+> add-remote R1 ../D1/.gitlite
 <<<
 > fetch R1 master
 <<<

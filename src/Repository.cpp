@@ -3,7 +3,7 @@
 #include <limits.h>
 
 std::string Repository::CWD;
-std::string Repository::GITLET_DIR;
+std::string Repository::GITLITE_DIR;
 std::string Repository::OBJECTS_DIR;
 std::string Repository::COMMITS_DIR;
 std::string Repository::BRANCH_DIR;
@@ -21,15 +21,15 @@ void Repository::initializePaths() {
     } else {
         CWD = ".";
     }
-    
-    GITLET_DIR = Utils::join(CWD, ".gitlet");
-    OBJECTS_DIR = Utils::join(GITLET_DIR, ".objects");
-    COMMITS_DIR = Utils::join(GITLET_DIR, ".commits");
-    BRANCH_DIR = Utils::join(GITLET_DIR, ".branch");
-    REMOTE_DIR = Utils::join(GITLET_DIR, ".remote");
-    STAGE_FILE = Utils::join(GITLET_DIR, "stagingArea");
-    HEAD_FILE = Utils::join(GITLET_DIR, "HEAD");
-    
+
+    GITLITE_DIR = Utils::join(CWD, ".gitlite");
+    OBJECTS_DIR = Utils::join(GITLITE_DIR, ".objects");
+    COMMITS_DIR = Utils::join(GITLITE_DIR, ".commits");
+    BRANCH_DIR = Utils::join(GITLITE_DIR, ".branch");
+    REMOTE_DIR = Utils::join(GITLITE_DIR, ".remote");
+    STAGE_FILE = Utils::join(GITLITE_DIR, "stagingArea");
+    HEAD_FILE = Utils::join(GITLITE_DIR, "HEAD");
+
     pathsInitialized = true;
 }
 
@@ -38,9 +38,9 @@ std::string Repository::getCWD() {
     return CWD;
 }
 
-std::string Repository::getGitletDir() {
+std::string Repository::getGitliteDir() {
     initializePaths();
-    return GITLET_DIR;
+    return GITLITE_DIR;
 }
 
 std::string Repository::getObjectsDir() {
