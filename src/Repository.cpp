@@ -1,6 +1,5 @@
 #include "../include/Repository.h"
 #include <unistd.h>
-#include <limits.h>
 
 std::string Repository::CWD;
 std::string Repository::GITLITE_DIR;
@@ -11,17 +10,14 @@ std::string Repository::REMOTE_DIR;
 std::string Repository::STAGE_FILE;
 std::string Repository::HEAD_FILE;
 bool Repository::pathsInitialized = false;
+const int PATH_MAX_LENGTH = 4096;
 
 void Repository::initializePaths() {
     if (pathsInitialized) return;
-    
-    char buffer[PATH_MAX];
-    if (getcwd(buffer, sizeof(buffer)) != nullptr) {
-        CWD = std::string(buffer);
-    } else {
-        CWD = ".";
-    }
 
+    char buffer[PATH_MAX_LENGTH];
+    if (getcwd(buffer, sizeof(buffer)))  CWD = std::string(buffer);
+    
     GITLITE_DIR = Utils::join(CWD, ".gitlite");
     OBJECTS_DIR = Utils::join(GITLITE_DIR, ".objects");
     COMMITS_DIR = Utils::join(GITLITE_DIR, ".commits");

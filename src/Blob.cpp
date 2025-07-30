@@ -4,21 +4,20 @@
 #include <sstream>
 #include <fstream>
 
-Blob::Blob(const std::string& name) : name(name) {
-    contents = getContents();
-}
-
-std::string Blob::getSHA1() const {
-    std::string combined = name + std::string(contents.begin(), contents.end());
-    return Utils::sha1(combined);
-}
-
 std::vector<unsigned char> Blob::getContent() const {
     return contents;
 }
 
 std::string Blob::getName() const {
     return name;
+}
+
+Blob::Blob(const std::string& name) : name(name) {
+    contents = getContents();
+}
+
+std::string Blob::getSHA1() const {
+    return Utils::sha1(name,std::string(contents.begin(), contents.end()));
 }
 
 std::vector<unsigned char> Blob::getContents() const {
@@ -34,9 +33,7 @@ void Blob::save() const {
 
 void Blob::saveOnRemotePath(const std::string& remotePath) const {
     std::string objectsDir = Utils::join(remotePath, ".objects");
-    if (!Utils::isDirectory(objectsDir)) {
-        Utils::createDirectories(objectsDir);
-    }
+    if (!Utils::isDirectory(objectsDir)) Utils::createDirectories(objectsDir);
     std::string objectPath = Utils::join(objectsDir, getSHA1());
     std::string serialized = serialize();
     Utils::writeContents(objectPath, serialized);
@@ -56,9 +53,7 @@ std::string Blob::serialize() const {
     std::stringstream ss;
     ss << name << "\n";
     ss << contents.size() << "\n";
-    for (unsigned char c : contents) {
-        ss << static_cast<int>(c) << " ";
-    }
+    for (unsigned char c : contents) ss << static_cast<int>(c) << " ";
     return ss.str();
 }
 
@@ -82,9 +77,6 @@ Blob Blob::deserialize(const std::string& data) {
     std::istringstream contentStream(contentLine);
     
     int value;
-    while (contentStream >> value && blob.contents.size() < size) {
-        blob.contents.push_back(static_cast<unsigned char>(value));
-    }
-    
+    while (contentStream >> value && blob.contents.size() < size) blob.contents.push_back(static_cast<unsigned char>(value));
     return blob;
 }

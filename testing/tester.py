@@ -515,8 +515,6 @@ if __name__ == "__main__":
             # Try multiple possible locations for the C++ executable
             possible_paths = [
                 join(project_root, 'build', 'gitlite'),
-                join(project_root, 'gitlite'),
-                join(project_root, 'bin', 'gitlite')
             ]
             cpp_executable_path = None
             for path in possible_paths:
