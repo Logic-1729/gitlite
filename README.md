@@ -351,32 +351,7 @@ random.stuff
 
 如果给定名称的分支已经存在，则打印错误消息`A branch with that name already exists.`后退出.
 
-更具体地，我们希望`branch`功能与之前我们实现的功能能够相互耦合，假设我们的状态如下所示：
-
-![](figures/07.png)
-
-现在我们调用`gitlite branch cool-beans`,得到：
-
-![](figures/08.png)
-
-嗯……没什么事发生。让我们切换到分支`cool-beans`:`gitlite checkout cool-beans`：
-
-![](figures/09.png)
-
-又没发生什么？！好吧，假设我们现在提交、修改一些文件`gitlite add... gitlite commit...`:
-
-![](figures/10.png)
-我被告知会有分支。但我看到的只是一条直线。这是怎么回事？也许我应该回到我的另一个分支`gitlite checkout master`：
-
-![](figures/11.png)
-
-现在我 `make a commit`:
-
-![](figures/12.png)
-
-锵锵！这就是分支的整个概念。你明白是怎么回事了吗？创建分支的作用就是给我们一个新的指针。在任何给定时刻，这些指针中的一个都被视为当前活动的指针，也称为 `HEAD` 指针（用 ``*`` 表示）。我们可以使用`checkout [branchname]`切换当前活动的头指针。每当我们提交时，都意味着我们会在当前活动的 `HEAD` 提交中添加一个子提交，即使已经有一个子提交。这自然会产生分支行为，因为一个提交现在可以有多个子提交。
-
-请确保您的`branch`、`checkout`、`commit`行为与我们上面描述的一致。这是 `Gitlite` 的核心功能，许多其他命令都依赖于它。
+更具体地，我们希望`branch`功能与之前我们实现的功能能够相互耦合，请确保您的`branch`、`checkout`、`commit`行为与我们上面描述的一致。这是 `Gitlite` 的核心功能，许多其他命令都依赖于它。
 
 ---
 
@@ -707,6 +682,7 @@ All tests passed!
 感谢2024级ACM 丁宣铭为README提出的宝贵的修改意见。
 
 如有问题请联系本项目的发布者`PhantomPhoenix`, 他的邮箱地址是: `logic_1729@sjtu.edu.cn`
+
 
 
 
