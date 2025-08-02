@@ -91,9 +91,7 @@ void Commit::buildBlobTree() {
 }
 
 std::string Commit::getDate() const {
-    if (!timestamp.empty()) {
-        return timestamp;
-    }
+    if (!timestamp.empty()) return timestamp;
     return generateTimestamp();
 }
 
@@ -106,7 +104,7 @@ std::string Commit::generateTimestamp() const {
         std::time(&rawtime);
     }
     
-    std::tm* timeinfo = std::gmtime(&rawtime);
+    std::tm* timeinfo = std::localtime(&rawtime);
     std::ostringstream oss;
     
     // Format: "EEE MMM dd HH:mm:ss yyyy Z"
@@ -120,7 +118,7 @@ std::string Commit::generateTimestamp() const {
         << std::setfill('0') << std::setw(2) << timeinfo->tm_hour << ":"
         << std::setfill('0') << std::setw(2) << timeinfo->tm_min << ":"
         << std::setfill('0') << std::setw(2) << timeinfo->tm_sec << " "
-        << (1900 + timeinfo->tm_year) << " +0000";
+        << (1900 + timeinfo->tm_year) << " +0800";
     
     return oss.str();
 }
@@ -133,9 +131,7 @@ void Commit::save() const {
 
 void Commit::saveOnRemotePath(const std::string& remotePath) const {
     std::string commitsDir = Utils::join(remotePath, ".commits");
-    if (!Utils::isDirectory(commitsDir)) {
-        Utils::createDirectories(commitsDir);
-    }
+    if (!Utils::isDirectory(commitsDir)) Utils::createDirectories(commitsDir);
     std::string commitPath = Utils::join(commitsDir, getSHA1());
     std::string serialized = serialize();
     Utils::writeContents(commitPath, serialized);

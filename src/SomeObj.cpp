@@ -14,10 +14,7 @@
 
 void SomeObj::init() {
     std::string gitliteDir = Repository::getGitliteDir();
-    if (Utils::isDirectory(gitliteDir)) {
-        Utils::exitWithMessage("A Gitlite version-control system already exists in the current directory.");
-    }
-
+    if (Utils::isDirectory(gitliteDir)) Utils::exitWithMessage("A Gitlite version-control system already exists in the current directory.");
     Utils::createDirectories(gitliteDir);
     Utils::createDirectories(Repository::getObjectsDir());
     Utils::createDirectories(Repository::getCommitsDir());
@@ -37,9 +34,7 @@ void SomeObj::add(const std::string& fileName) {
     std::string filePath = Utils::join(Repository::getCWD(), fileName);
     StagingArea currentStagingArea = StagingArea::load();
     
-    if (!Utils::exists(filePath) && currentStagingArea.getRemoveStage().find(fileName) == currentStagingArea.getRemoveStage().end()) {
-        Utils::exitWithMessage("File does not exist.");
-    }
+    if (!Utils::exists(filePath) && currentStagingArea.getRemoveStage().find(fileName) == currentStagingArea.getRemoveStage().end()) Utils::exitWithMessage("File does not exist.");
     
     if (currentStagingArea.getRemoveStage().find(fileName) != currentStagingArea.getRemoveStage().end()) {
         currentStagingArea.getRemoveStage().erase(fileName);
@@ -51,16 +46,19 @@ void SomeObj::add(const std::string& fileName) {
     std::string currentSHA1 = currentBlob.getSHA1();
     Commit headCommit = Commit::load(Branch::getCommitId(HEAD::getBranchName()));
     
-    if (headCommit.getBlobTree().find(currentSHA1) != headCommit.getBlobTree().end()) {
-        // File exists in head commit with same content
-        std::string valueToRemove = fileName;
-        for (auto it = currentStagingArea.getAddStage().begin(); it != currentStagingArea.getAddStage().end(); ++it) {
-            if (it->second == valueToRemove) {
-                currentStagingArea.getAddStage().erase(it);
-                break;
-            }
+    // First, remove any existing entry for this file name
+    for (auto it = currentStagingArea.getAddStage().begin(); it != currentStagingArea.getAddStage().end(); ++it) {
+        if (it->second == fileName) {
+            currentStagingArea.getAddStage().erase(it);
+            break;
         }
+    }
+    
+    if (headCommit.getBlobTree().find(currentSHA1) != headCommit.getBlobTree().end()) {
+        // File exists in head commit with same content - don't add to staging area
+        // The file has been removed from staging area above, so no further action needed
     } else {
+        // File is different from head commit, add to staging area
         currentStagingArea.getAddStage()[currentSHA1] = fileName;
     }
     
@@ -70,13 +68,8 @@ void SomeObj::add(const std::string& fileName) {
 
 void SomeObj::commit(const std::string& message) {
     StagingArea currentStagingArea = StagingArea::load();
-    if (currentStagingArea.getAddStage().empty() && currentStagingArea.getRemoveStage().empty()) {
-        Utils::exitWithMessage("No changes added to the commit.");
-    }
-    if (message.empty()) {
-        Utils::exitWithMessage("Please enter a commit message.");
-    }
-    
+    if (currentStagingArea.getAddStage().empty() && currentStagingArea.getRemoveStage().empty()) Utils::exitWithMessage("No changes added to the commit.");
+    if (message.empty()) Utils::exitWithMessage("Please enter a commit message.");
     std::string headCommitId = Branch::getCommitId(HEAD::getBranchName());
     Commit currentCommit(message, headCommitId, "");
     currentCommit.save();
@@ -84,9 +77,7 @@ void SomeObj::commit(const std::string& message) {
 }
 
 void SomeObj::mergeCommit(const std::string& message, const std::string& head, const std::string& another) {
-    if (message.empty()) {
-        Utils::exitWithMessage("Please enter a commit message.");
-    }
+    if (message.empty()) Utils::exitWithMessage("Please enter a commit message.");
     Commit currentCommit(message, head, another);
     currentCommit.save();
     Branch::setCommitId(HEAD::getBranchName(), currentCommit.getSHA1());
@@ -117,10 +108,7 @@ void SomeObj::rm(const std::string& fileName) {
         }
     }
     
-    if (!inAddStage && !inCommit) {
-        Utils::exitWithMessage("No reason to remove the file.");
-    }
-    
+    if (!inAddStage && !inCommit) Utils::exitWithMessage("No reason to remove the file.");
     currentStagingArea.save();
 }
 
@@ -187,17 +175,13 @@ void SomeObj::find(const std::string& commitMessage) {
     
     for (const std::string& commitId : commitList) {
         Commit currentCommit = Commit::load(commitId);
-        if (currentCommit.getMessage() == commitMessage) {
-            matchingCommits.push_back(commitId);
-        }
+        if (currentCommit.getMessage() == commitMessage) matchingCommits.push_back(commitId);
     }
     
     if (matchingCommits.empty()) {
         Utils::exitWithMessage("Found no commit with that message.");
     } else {
-        for (const std::string& commitId : matchingCommits) {
-            std::cout << commitId << std::endl;
-        }
+        for (const std::string& commitId : matchingCommits) std::cout << commitId << std::endl;
     }
 }
 
@@ -214,22 +198,14 @@ void SomeObj::status() {
     
     std::cout << "=== Branches ===\n";
     for (const std::string& branchName : branchNameList) {
-        if (branchName == HEAD::getBranchName()) {
-            std::cout << "*";
-        }
+        if (branchName == HEAD::getBranchName()) std::cout << "*";
         std::cout << branchName << "\n";
     }
     
     std::cout << "\n=== Staged Files ===\n";
-    for (const std::string& stageName : sortedAddStageName) {
-        std::cout << stageName << "\n";
-    }
-    
+    for (const std::string& stageName : sortedAddStageName) std::cout << stageName << "\n";
     std::cout << "\n=== Removed Files ===\n";
-    for (const std::string& stageName : sortedRemoveStageName) {
-        std::cout << stageName << "\n";
-    }
-    
+    for (const std::string& stageName : sortedRemoveStageName) std::cout << stageName << "\n";
     std::cout << "\n=== Modifications Not Staged For Commit ===\n";
     std::set<std::string> modifiedNameToPrint;
     std::vector<std::string> fileNameInCWD = Utils::plainFilenamesIn(Repository::getCWD());
@@ -247,17 +223,9 @@ void SomeObj::status() {
         bool differentInCommit = false;
         bool differentInAddStage = false;
         
-        if (isExist && isInCommit && currentFileHash != commitBlobHash) {
-            differentInCommit = true;
-        }
-        
-        if (isExist && isInAddStage && addStageFileHash != currentFileHash) {
-            differentInAddStage = true;
-        }
-        
-        if (isExist && (differentInCommit || differentInAddStage)) {
-            modifiedNameToPrint.insert(fileName + " (modified)");
-        }
+        if (isExist && isInCommit && currentFileHash != commitBlobHash) differentInCommit = true;
+        if (isExist && isInAddStage && addStageFileHash != currentFileHash) differentInAddStage = true;
+        if (isExist && (differentInCommit || differentInAddStage)) modifiedNameToPrint.insert(fileName + " (modified)");
     }
     
     for (const auto& entry : headCommit.getBlobTree()) {
@@ -266,16 +234,10 @@ void SomeObj::status() {
         bool isNotExist = !Utils::exists(filePath);
         bool isNotInRemoveStage = (removeStage.find(fileName) == removeStage.end());
         bool isInAddStage = (valueToKey(addStage, fileName) != "");
-        
-        if (isNotExist && (isNotInRemoveStage || isInAddStage)) {
-            modifiedNameToPrint.insert(fileName + " (deleted)");
-        }
+        if (isNotExist && (isNotInRemoveStage || isInAddStage)) modifiedNameToPrint.insert(fileName + " (deleted)");
     }
     
-    for (const std::string& name : modifiedNameToPrint) {
-        std::cout << name << "\n";
-    }
-    
+    for (const std::string& name : modifiedNameToPrint) std::cout << name << "\n";
     std::cout << "\n=== Untracked Files ===\n";
     std::vector<std::string> fileList2 = Utils::plainFilenamesIn(Repository::getCWD());
     std::set<std::string> untrackedNameToPrint;
@@ -285,14 +247,10 @@ void SomeObj::status() {
         bool isNotInAddStage = (valueToKey(addStage, fileName) == "");
         bool isInRemoveStage = (removeStage.find(fileName) != removeStage.end());
         
-        if ((isNotInHead && isNotInAddStage) || isInRemoveStage) {
-            untrackedNameToPrint.insert(fileName);
-        }
+        if ((isNotInHead && isNotInAddStage) || isInRemoveStage) untrackedNameToPrint.insert(fileName);
     }
     
-    for (const std::string& name : untrackedNameToPrint) {
-        std::cout << name << "\n";
-    }
+    for (const std::string& name : untrackedNameToPrint) std::cout << name << "\n";
 }
 
 void SomeObj::checkoutFile(const std::string& fileName) {
@@ -301,9 +259,7 @@ void SomeObj::checkoutFile(const std::string& fileName) {
 
 void SomeObj::checkoutFileInCommit(const std::string& commitId, const std::string& fileName) {
     Commit targetCommit = Commit::load(commitId);
-    if (!targetCommit.isValid()) {
-        Utils::exitWithMessage("No commit with that id exists.");
-    }
+    if (!targetCommit.isValid()) Utils::exitWithMessage("No commit with that id exists.");
     
     // Check if file exists in the commit using containsValue logic
     bool fileExistsInCommit = false;
@@ -314,9 +270,7 @@ void SomeObj::checkoutFileInCommit(const std::string& commitId, const std::strin
         }
     }
     
-    if (!fileExistsInCommit) {
-        Utils::exitWithMessage("File does not exist in that commit.");
-    }
+    if (!fileExistsInCommit) Utils::exitWithMessage("File does not exist in that commit.");
     
     std::string fileSHA1 = valueToKey(targetCommit.getBlobTree(), fileName);
     std::string blobPath = Utils::join(Repository::getObjectsDir(), fileSHA1);
@@ -337,16 +291,13 @@ void SomeObj::checkoutBranch(const std::string& branchName) {
         return;
     }
     
-    if (branchName == HEAD::getBranchName()) {
-        Utils::exitWithMessage("No need to checkout the current branch.");
-    }
+    if (branchName == HEAD::getBranchName()) Utils::exitWithMessage("No need to checkout the current branch.");
+    
     
     std::vector<std::string> branchNameList = Utils::plainFilenamesIn(Repository::getBranchDir());
     bool branchExists = std::find(branchNameList.begin(), branchNameList.end(), branchName) != branchNameList.end();
     
-    if (!branchExists) {
-        Utils::exitWithMessage("No such branch exists.");
-    }
+    if (!branchExists) Utils::exitWithMessage("No such branch exists.");
     
     Commit branchCommit = Commit::load(Branch::getCommitId(branchName));
     checkoutCommit(branchCommit);
@@ -389,14 +340,11 @@ void SomeObj::checkoutCommit(const Commit& commit) {
             }
         }
         
-        if (isNotInHead && isNotInAddStage && isInCurrentCommit) {
-            Utils::exitWithMessage("There is an untracked file in the way; delete it, or add and commit it first.");
-        }
+        if (isNotInHead && isNotInAddStage && isInCurrentCommit) Utils::exitWithMessage("There is an untracked file in the way; delete it, or add and commit it first.");
+        
     }
     
-    if (commit.getSHA1() == headCommitId) {
-        return; // No changes needed
-    }
+    if (commit.getSHA1() == headCommitId) return; // No changes needed
     
     // Remove files that are in head but not in target commit (using containsKey logic)
     for (const auto& entry : headCommit.getBlobTree()) {
@@ -447,9 +395,7 @@ void SomeObj::branch(const std::string& branchName) {
     std::vector<std::string> branchNameList = Utils::plainFilenamesIn(Repository::getBranchDir());
     bool branchExists = std::find(branchNameList.begin(), branchNameList.end(), branchName) != branchNameList.end();
     
-    if (branchExists) {
-        Utils::exitWithMessage("A branch with that name already exists.");
-    }
+    if (branchExists) Utils::exitWithMessage("A branch with that name already exists.");
     
     Branch::setCommitId(branchName, Branch::getCommitId(HEAD::getBranchName()));
 }
@@ -457,25 +403,15 @@ void SomeObj::branch(const std::string& branchName) {
 void SomeObj::rmBranch(const std::string& branchName) {
     std::vector<std::string> branchNameList = Utils::plainFilenamesIn(Repository::getBranchDir());
     bool branchExists = std::find(branchNameList.begin(), branchNameList.end(), branchName) != branchNameList.end();
-    
-    if (!branchExists) {
-        Utils::exitWithMessage("A branch with that name does not exist.");
-    }
-    
-    if (branchName == HEAD::getBranchName()) {
-        Utils::exitWithMessage("Cannot remove the current branch.");
-    }
-    
+    if (!branchExists) Utils::exitWithMessage("A branch with that name does not exist.");
+    if (branchName == HEAD::getBranchName()) Utils::exitWithMessage("Cannot remove the current branch.");
     std::string branchFile = Utils::join(Repository::getBranchDir(), branchName);
     remove(branchFile.c_str());
 }
 
 void SomeObj::reset(const std::string& commitId) {
     Commit commit = Commit::load(commitId);
-    if (!commit.isValid()) {
-        Utils::exitWithMessage("No commit with that id exists.");
-    }
-    
+    if (!commit.isValid()) Utils::exitWithMessage("No commit with that id exists.");
     checkoutCommit(commit);
     Branch::setCommitId(HEAD::getBranchName(), commit.getSHA1());
 }
@@ -483,9 +419,7 @@ void SomeObj::reset(const std::string& commitId) {
 // Helper methods
 std::vector<std::string> SomeObj::sortMapNames(const std::map<std::string, std::string>& map) {
     std::vector<std::string> names;
-    for (const auto& pair : map) {
-        names.push_back(pair.second);
-    }
+    for (const auto& pair : map) names.push_back(pair.second);
     std::sort(names.begin(), names.end());
     return names;
 }
@@ -498,9 +432,7 @@ std::vector<std::string> SomeObj::sortSetNames(const std::set<std::string>& set)
 
 std::string SomeObj::valueToKey(const std::map<std::string, std::string>& map, const std::string& name) {
     for (const auto& pair : map) {
-        if (pair.second == name) {
-            return pair.first;
-        }
+        if (pair.second == name) return pair.first;
     }
     return "";
 }
@@ -517,36 +449,20 @@ std::string SomeObj::findAncestor(const std::string& headCommitId, const std::st
         std::string currentCommitId = headCommitQueue.front();
         headCommitQueue.pop();
         
-        if (currentCommitId == targetCommitId) {
-            return currentCommitId;
-        }
-        
+        if (currentCommitId == targetCommitId) return currentCommitId;
         booked.insert(currentCommitId);
         Commit cur = Commit::load(currentCommitId);
-        
-        if (!cur.getParent1().empty()) {
-            headCommitQueue.push(cur.getParent1());
-        }
-        if (!cur.getParent2().empty()) {
-            headCommitQueue.push(cur.getParent2());
-        }
+        if (!cur.getParent1().empty()) headCommitQueue.push(cur.getParent1());
+        if (!cur.getParent2().empty()) headCommitQueue.push(cur.getParent2());
     }
     
     while (!targetCommitQueue.empty()) {
         std::string currentCommitId = targetCommitQueue.front();
         targetCommitQueue.pop();
-        
-        if (booked.find(currentCommitId) != booked.end()) {
-            return currentCommitId;
-        }
-        
+        if (booked.find(currentCommitId) != booked.end()) return currentCommitId;
         Commit cur = Commit::load(currentCommitId);
-        if (!cur.getParent1().empty()) {
-            targetCommitQueue.push(cur.getParent1());
-        }
-        if (!cur.getParent2().empty()) {
-            targetCommitQueue.push(cur.getParent2());
-        }
+        if (!cur.getParent1().empty()) targetCommitQueue.push(cur.getParent1());
+        if (!cur.getParent2().empty()) targetCommitQueue.push(cur.getParent2());
     }
     
     return "";
@@ -554,18 +470,13 @@ std::string SomeObj::findAncestor(const std::string& headCommitId, const std::st
 
 void SomeObj::ensureRemoteDirExists() {
     std::string remoteDir = Repository::getRemoteDir();
-    if (!Utils::isDirectory(remoteDir)) {
-        Utils::createDirectories(remoteDir);
-    }
+    if (!Utils::isDirectory(remoteDir)) Utils::createDirectories(remoteDir);
 }
 
 // Simplified remote operations (basic implementation)
 void SomeObj::addRemote(const std::string& remoteName, const std::string& remotePath) {
     ensureRemoteDirExists();
-    if (!Remote::getRemotePath(remoteName).empty()) {
-        Utils::exitWithMessage("A remote with that name already exists.");
-    }
-    
+    if (!Remote::getRemotePath(remoteName).empty()) Utils::exitWithMessage("A remote with that name already exists.");
     std::string normalizedPath = remotePath;
     std::replace(normalizedPath.begin(), normalizedPath.end(), '/', '/');
     Remote::addRemotePath(remoteName, normalizedPath);
@@ -573,9 +484,7 @@ void SomeObj::addRemote(const std::string& remoteName, const std::string& remote
 
 void SomeObj::rmRemote(const std::string& remoteName) {
     ensureRemoteDirExists();
-    if (Remote::getRemotePath(remoteName).empty()) {
-        Utils::exitWithMessage("A remote with that name does not exist.");
-    }
+    if (Remote::getRemotePath(remoteName).empty()) Utils::exitWithMessage("A remote with that name does not exist.");
     Remote::removeRemotePath(remoteName);
 }
 
@@ -583,11 +492,7 @@ void SomeObj::rmRemote(const std::string& remoteName) {
 void SomeObj::push(const std::string& remoteName, const std::string& remoteBranchName) {
     ensureRemoteDirExists();
     std::string remoteGitPath = Remote::getRemotePath(remoteName);
-    
-    if (!Utils::exists(remoteGitPath)) {
-        Utils::exitWithMessage("Remote directory not found.");
-    }
-    
+    if (!Utils::exists(remoteGitPath)) Utils::exitWithMessage("Remote directory not found.");
     std::string localBranchName = HEAD::getBranchName();
     std::vector<std::string> commitHistory;
     std::string localCommitId = Branch::getCommitId(localBranchName);
@@ -605,9 +510,7 @@ void SomeObj::push(const std::string& remoteName, const std::string& remoteBranc
         commit = Commit::load(commit.getParent1());
     }
     
-    if (!isHistory) {
-        Utils::exitWithMessage("Please pull down remote changes before pushing.");
-    }
+    if (!isHistory) Utils::exitWithMessage("Please pull down remote changes before pushing.");
     
     for (const std::string& commitId : commitHistory) {
         commit = Commit::load(commitId);
@@ -625,14 +528,8 @@ void SomeObj::fetch(const std::string& remoteName, const std::string& remoteBran
     ensureRemoteDirExists();
     std::string remoteGitPath = Remote::getRemotePath(remoteName);
     
-    if (!Utils::exists(remoteGitPath)) {
-        Utils::exitWithMessage("Remote directory not found.");
-    }
-    
-    if (Branch::getRemoteCommitId(remoteGitPath, remoteBranchName).empty()) {
-        Utils::exitWithMessage("That remote does not have that branch.");
-    }
-    
+    if (!Utils::exists(remoteGitPath)) Utils::exitWithMessage("Remote directory not found.");
+    if (Branch::getRemoteCommitId(remoteGitPath, remoteBranchName).empty()) Utils::exitWithMessage("That remote does not have that branch.");
     std::string localBranchName = remoteName + "/" + remoteBranchName;
     // On Linux, keep forward slash as separator
     
@@ -643,23 +540,14 @@ void SomeObj::fetch(const std::string& remoteName, const std::string& remoteBran
     Commit commit = Commit::remoteLoad(remoteGitPath, remoteCommitId);
     while (!commit.getParent1().empty()) {
         remoteCommitHistory.push_back(commit.getSHA1());
-        if (localCommitId == commit.getSHA1()) {
-            break;
-        }
+        if (localCommitId == commit.getSHA1()) break;
         commit = Commit::remoteLoad(remoteGitPath, commit.getParent1());
     }
-    
-    if (remoteCommitHistory.empty()) {
-        Utils::exitWithMessage("Please pull down remote changes before pushing.");
-    }
-    
+    if (remoteCommitHistory.empty()) Utils::exitWithMessage("Please pull down remote changes before pushing.");
     Branch::setCommitId2(remoteName, remoteBranchName, remoteCommitId);
-    
     for (const std::string& commitId : remoteCommitHistory) {
         commit = Commit::remoteLoad(remoteGitPath, commitId);
-        for (const auto& entry : commit.getBlobTree()) {
-            Blob::copyFromRemote(remoteGitPath, entry.first);
-        }
+        for (const auto& entry : commit.getBlobTree()) Blob::copyFromRemote(remoteGitPath, entry.first);
         commit.save();
     }
 }
@@ -676,31 +564,19 @@ void SomeObj::merge(const std::string& branchName) {
     std::string branchCommitId;
     
     if (branchName.find("/") != std::string::npos) {
-        if (!currentStage.getAddStage().empty() || !currentStage.getRemoveStage().empty()) {
-            Utils::exitWithMessage("You have uncommitted changes.");
-        }
+        if (!currentStage.getAddStage().empty() || !currentStage.getRemoveStage().empty()) Utils::exitWithMessage("You have uncommitted changes.");
         std::string branchFile = branchNameToBranchFile(branchName);
         std::string remoteBranchCommitId = Utils::readContentsAsString(branchFile);
         Commit remoteBranchCommit = Commit::load(remoteBranchCommitId);
-        if (!remoteBranchCommit.isValid()) {
-            Utils::exitWithMessage("A branch with that name does not exist.");
-        }
-        if (branchName == HEAD::getBranchName()) {
-            Utils::exitWithMessage("Cannot merge a branch with itself.");
-        }
+        if (!remoteBranchCommit.isValid()) Utils::exitWithMessage("A branch with that name does not exist.");
+        if (branchName == HEAD::getBranchName()) Utils::exitWithMessage("Cannot merge a branch with itself.");
         branchCommitId = remoteBranchCommit.getSHA1();
     } else {
-        if (!currentStage.getAddStage().empty() || !currentStage.getRemoveStage().empty()) {
-            Utils::exitWithMessage("You have uncommitted changes.");
-        }
+        if (!currentStage.getAddStage().empty() || !currentStage.getRemoveStage().empty()) Utils::exitWithMessage("You have uncommitted changes.");
         std::vector<std::string> branchNameList = Utils::plainFilenamesIn(Repository::getBranchDir());
         bool branchExists = std::find(branchNameList.begin(), branchNameList.end(), branchName) != branchNameList.end();
-        if (!branchExists) {
-            Utils::exitWithMessage("A branch with that name does not exist.");
-        }
-        if (branchName == HEAD::getBranchName()) {
-            Utils::exitWithMessage("Cannot merge a branch with itself.");
-        }
+        if (!branchExists) Utils::exitWithMessage("A branch with that name does not exist.");
+        if (branchName == HEAD::getBranchName()) Utils::exitWithMessage("Cannot merge a branch with itself.");
         branchCommitId = Branch::getCommitId(branchName);
     }
     
@@ -726,17 +602,13 @@ void SomeObj::merge(const std::string& branchName) {
             }
         }
         
-        if (isNotInHead && isNotInAddStage) {
-            Utils::exitWithMessage("There is an untracked file in the way; delete it, or add and commit it first.");
-        }
+        if (isNotInHead && isNotInAddStage) Utils::exitWithMessage("There is an untracked file in the way; delete it, or add and commit it first.");
     }
     
     std::string headCommitId = Branch::getCommitId(HEAD::getBranchName());
     std::string splitPointCommitId = findAncestor(headCommitId, branchCommitId);
     
-    if (splitPointCommitId == branchCommitId) {
-        Utils::exitWithMessage("Given branch is an ancestor of the current branch.");
-    }
+    if (splitPointCommitId == branchCommitId) Utils::exitWithMessage("Given branch is an ancestor of the current branch.");
     if (splitPointCommitId == headCommitId) {
         checkoutCommit(Commit::load(branchCommitId));
         Branch::setCommitId(HEAD::getBranchName(), branchCommitId);
@@ -755,17 +627,14 @@ void SomeObj::merge(const std::string& branchName) {
     
     std::vector<std::string> fileList = Utils::plainFilenamesIn(Repository::getCWD());
     for (const std::string& fileName : fileList) {
-        if (skipFiles.find(fileName) == skipFiles.end()) {
-            add(fileName);
-        }
+        if (skipFiles.find(fileName) == skipFiles.end()) add(fileName);
+
     }
     
     std::string newMessage = "Merged " + branchName + " into " + HEAD::getBranchName() + ".";
     mergeCommit(newMessage, headCommitId, branchCommitId);
     
-    if (isConflict) {
-        Utils::exitWithMessage("Encountered a merge conflict.");
-    }
+    if (isConflict) Utils::exitWithMessage("Encountered a merge conflict.");
 }
 
 void SomeObj::splitPointCheck(const Commit& headCommit, const Commit& branchCommit, const Commit& splitPointCommit) {
