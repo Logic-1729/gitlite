@@ -8,7 +8,7 @@
 > 
 > **WARNING:本项目不是一个能够短期内肝出来的项目，请循序渐进完成，DDL赶不完者后果自负**
 
-请先阅读(Git傻瓜教程)[https://notes.sjtu.edu.cn/SG0OCEhHRCqcsE30CToLxA]以及仓库里的GITLITE.pptx:)
+请先阅读[Git傻瓜教程](https://notes.sjtu.edu.cn/SG0OCEhHRCqcsE30CToLxA)以及仓库里的GITLITE.pptx:)
 
 ## 项目骨架
 
@@ -707,5 +707,6 @@ All tests passed!
 感谢2024级ACM 丁宣铭为README提出的宝贵的修改意见。
 
 如有问题请联系本项目的发布者`PhantomPhoenix`, 他的邮箱地址是: `logic_1729@sjtu.edu.cn`
+
 
 
