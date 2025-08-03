@@ -1,4 +1,4 @@
-# Project 4: $\mathrm{SJTU!It's MyGit!!!!!}$
+# Project 4: $\mathrm{SJTU!It's    MyGit!!!!!}$
 
 > SJTU CS1958-01 2025Fall 第四次大作业
 > 
@@ -668,6 +668,7 @@ All tests passed!
 感谢2024级ACM 丁宣铭为README提出的宝贵的修改意见。
 
 如有问题请联系本项目的发布者`PhantomPhoenix`, 他的邮箱地址是: `logic_1729@sjtu.edu.cn`
+
 
 
 
